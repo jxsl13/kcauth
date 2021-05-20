@@ -17,45 +17,45 @@ The second workflow is where you pass your credentials to the application and th
 
 ```go
 type Config struct {
-	KeycloakURL     string
+    KeycloakURL     string
     OIDCToken       string
-	JWTToken        string
+    JWTToken        string
 }
 
 func (c *Config) Name() string {
-	return "my cli app"
+    return "my cli app"
 }
 
 func (c *Config) Options() configo.Options {
-	appName := c.Name()
-	cli.SetApplicatioName(appName)
-	tokenFile := fmt.Sprintf("token_%s_%s", appName, DefaultClientID)
+    appName := c.Name()
+    cli.SetApplicatioName(appName)
+    tokenFile := fmt.Sprintf("token_%s_%s", appName, DefaultClientID)
 
-	return configo.Options{
-		{
-			Key:           "KEYCLOAK_URL",
-			Mandatory:     true,
-			Description:   "Authentication Keycloak that provides the authorization token.",
-			DefaultValue:  "https://some-keycloak.com/auth/realms/my_realm",
-			ParseFunction: parsers.String(&c.KeycloakURL),
-		},
-		{
+    return configo.Options{
+        {
+            Key:           "KEYCLOAK_URL",
+            Mandatory:     true,
+            Description:   "Authentication Keycloak that provides the authorization token.",
+            DefaultValue:  "https://some-keycloak.com/auth/realms/my_realm",
+            ParseFunction: parsers.String(&c.KeycloakURL),
+        },
+        {
             Key: "Browser login",
-			IsPseudoOption: true,
-			ParseFunction: browser.Login(
-				&c.OIDCToken,
-				&c.KeycloakURL,
+            IsPseudoOption: true,
+            ParseFunction: browser.Login(
+                &c.OIDCToken,
+                &c.KeycloakURL,
             ),
-		},
-		{
-			Key:            "CLI Login prompt",
-			IsPseudoOption: true,
-			ParseFunction: cli.Login(
-				&c.JWTToken,
-				&c.KeycloakURL,
+        },
+        {
+            Key:            "CLI Login prompt",
+            IsPseudoOption: true,
+            ParseFunction: cli.Login(
+                &c.JWTToken,
+                &c.KeycloakURL,
                 ),
-		},
-	}
+        },
+    }
 }
 
 ```

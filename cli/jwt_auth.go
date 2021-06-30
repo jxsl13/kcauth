@@ -1,44 +1,130 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"path"
+	"regexp"
 
-	configo "github.com/jxsl13/simple-configo"
-	"github.com/mitchellh/go-homedir"
+	gocloak "github.com/Nerzal/gocloak/v8"
+	"github.com/jxsl13/kcauth"
+	"github.com/jxsl13/simple-configo/parsers"
 )
 
 var (
-
-	// DefaultClientID is usually a public client that doe snot require any credentials, thus the secret is empty.
-	DefaultClientID = "public"
-
-	// DefaultClientSecret is usually the public client that does not require any further configuration nor credentials.
-	DefaultClientSecret = ""
-
-	// DefaultCacheDirectory is the directory that is used to store cached tokens.
-	DefaultCacheDirectory = "$HOME/.oidc_keys"
+	extractRegex = regexp.MustCompile(`^(https?://[a-z0-9-\.:]{5,})/auth/realms/([^/]+)/?.*$`)
 )
 
-func init() {
-	// initialize default home directory with a valid path
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Printf("Failed to find home directory: %v\n", err)
-		return
+func extractRealm(url string) (domain, realm string, err error) {
+	if matches := extractRegex.FindStringSubmatch(url); matches != nil {
+		return matches[1], matches[2], nil
 	}
-	DefaultCacheDirectory = path.Join(home, ".oidc_keys")
+	return "", "", fmt.Errorf("invalid keycloak realm url: %s", url)
 }
 
-// Login logs you in via the cli workflow, prompts for username and password and fetches an oflfine token from
-// the rarget keycloak and caches the access token as well as th erefresh token locally.
-func Login(accessToken, issuerURL *string) configo.ParserFunc {
-	return func(value string) error {
-		token, err := jwtLogin(*issuerURL, DefaultClientID, DefaultClientSecret, DefaultCacheDirectory)
-		if err != nil {
-			return err
-		}
-		*accessToken = token.AccessToken
-		return nil
+func getOfflineToken(realmURL, clientID, clientSecret, username, password string) (*kcauth.Token, error) {
+	keycloakURL, realm, err := extractRealm(realmURL)
+	if err != nil {
+		return nil, err
 	}
+	ctx := context.Background()
+
+	client := gocloak.NewClient(keycloakURL)
+
+	grantType := "password"
+	if username == "" && password == "" {
+		grantType = "client_credentials"
+	}
+
+	scopes := &[]string{"openid"}
+
+	// offline access only for non automated workflows.
+	if grantType == "password" {
+		*scopes = append(*scopes, "offline_access")
+	}
+
+	token, err := client.GetToken(
+		ctx,
+		realm,
+		gocloak.TokenOptions{
+			ClientID:      gocloak.StringP(clientID),
+			ClientSecret:  gocloak.StringP(clientSecret),
+			GrantType:     gocloak.StringP(grantType),
+			Scopes:        scopes,
+			ResponseTypes: &[]string{"token"},
+			Username:      gocloak.StringP(username),
+			Password:      gocloak.StringP(password),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return newTokenFromGoCloak(token), nil
+}
+
+func refreshToken(issuerUrl, clientID, clientSecret, refreshToken string) (*kcauth.Token, error) {
+	keycloakURL, realm, err := extractRealm(issuerUrl)
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	client := gocloak.NewClient(keycloakURL)
+	token, err := client.RefreshToken(
+		ctx,
+		refreshToken,
+		clientID,
+		clientSecret,
+		realm,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return newTokenFromGoCloak(token), nil
+}
+
+func jwtLogin(issuerURL, clientID, clientSecret, cacheDirectory string) (*kcauth.Token, error) {
+	tokenFile := fmt.Sprintf("token_jwt_%s", clientID)
+	cachedFile := path.Join(cacheDirectory, tokenFile)
+	cachedToken, err := loadToken(cachedFile)
+	if err == nil {
+		// loaded token successfully
+		if !cachedToken.IsAccessTokenExpired() {
+			return cachedToken, nil
+		}
+		// access token expired
+		if !cachedToken.IsRefreshTokenExpired() {
+			token, err := refreshToken(issuerURL, clientID, clientSecret, cachedToken.RefreshToken)
+			if err == nil {
+				return token, nil
+			}
+		}
+		// refresh token is also expired or failed to refresh
+	}
+
+	// we need a new token
+	username := ""
+	password := ""
+
+	// this is only empty when we use the public grant type
+	if clientSecret == "" {
+		err = parsers.PromptText(&username, "Enter your username>")("")
+		if err != nil {
+			return nil, err
+		}
+		err = parsers.PromptPassword(&password, "Enter your password>")("")
+		if err != nil {
+			return nil, err
+		}
+	}
+	// passing an empty username and password triggers the client_credentials grant type
+	token, err := getOfflineToken(issuerURL, clientID, clientSecret, username, password)
+	if err != nil {
+		return nil, err
+	}
+	cachedToken, err = saveToken(cachedFile, token)
+	if err != nil {
+		return nil, err
+	}
+	return cachedToken, nil
 }

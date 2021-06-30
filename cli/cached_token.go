@@ -9,57 +9,33 @@ import (
 	"time"
 
 	gocloak "github.com/Nerzal/gocloak/v8"
+	"github.com/jxsl13/kcauth"
 )
 
-var (
-	epochZero = time.Unix(0, 0)
-)
-
-func newCachedToken(token *gocloak.JWT) *cachedToken {
-	cacheToken := &cachedToken{token, epochZero, epochZero}
-	cacheToken.init()
-	return cacheToken
-}
-
-type cachedToken struct {
-	*gocloak.JWT
-	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
-	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at,omitempty"`
-}
-
-func (ct *cachedToken) IsAccessTokenExpired() bool {
-	if ct.AccessTokenExpiresAt.Equal(epochZero) {
-		return false
+func newTokenFromGoCloak(token *gocloak.JWT) *kcauth.Token {
+	resultToken := &kcauth.Token{
+		AccessToken:           token.AccessToken,
+		RefreshToken:          token.RefreshToken,
+		AccessTokenExpiresAt:  kcauth.EpochZero,
+		RefreshTokenExpiresAt: kcauth.EpochZero,
 	}
-	return time.Now().After(ct.AccessTokenExpiresAt)
+
+	if token.ExpiresIn > 0 {
+		resultToken.AccessTokenExpiresAt = time.Now().Add(time.Second * time.Duration(token.ExpiresIn))
+	}
+	if token.RefreshExpiresIn > 0 {
+		resultToken.RefreshTokenExpiresAt = time.Now().Add(time.Second * time.Duration(token.RefreshExpiresIn))
+	}
+
+	return resultToken
 }
 
-func (ct *cachedToken) IsRefreshTokenExpired() bool {
-	if ct.RefreshTokenExpiresAt.Equal(epochZero) {
-		return false
-	}
-	return time.Now().After(ct.RefreshTokenExpiresAt)
-}
-
-func (ct *cachedToken) init() {
-	if ct.ExpiresIn > 0 {
-		ct.AccessTokenExpiresAt = time.Now().Add(time.Second * time.Duration(ct.ExpiresIn))
-	} else {
-		ct.AccessTokenExpiresAt = epochZero
-	}
-	if ct.RefreshExpiresIn > 0 {
-		ct.RefreshTokenExpiresAt = time.Now().Add(time.Second * time.Duration(ct.RefreshExpiresIn))
-	} else {
-		ct.RefreshTokenExpiresAt = epochZero
-	}
-}
-
-func loadCachedToken(tokenPath string) (*cachedToken, error) {
+func loadToken(tokenPath string) (*kcauth.Token, error) {
 	b, err := ioutil.ReadFile(tokenPath)
 	if err != nil {
 		return nil, err
 	}
-	token := &cachedToken{}
+	token := &kcauth.Token{}
 	err = json.Unmarshal(b, token)
 	if err != nil {
 		return nil, err
@@ -67,10 +43,10 @@ func loadCachedToken(tokenPath string) (*cachedToken, error) {
 	return token, nil
 }
 
-func saveToken(tokenPath string, token *gocloak.JWT) (*cachedToken, error) {
+func saveToken(tokenPath string, token *kcauth.Token) (*kcauth.Token, error) {
 	// in order to access and list its folder content, execution permissions are required, thus 0700 instead of 0600
 	var perm fs.FileMode = 0700
-	cacheToken := newCachedToken(token)
+	cacheToken := token
 
 	data, err := json.Marshal(cacheToken)
 	if err != nil {

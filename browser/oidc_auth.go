@@ -2,42 +2,24 @@ package browser
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"path"
 
+	"github.com/jxsl13/kcauth"
 	"github.com/jxsl13/oidc"
 	"github.com/jxsl13/oidc/login"
 	disk "github.com/jxsl13/oidc/login/diskcache"
-	configo "github.com/jxsl13/simple-configo"
-	"github.com/mitchellh/go-homedir"
 )
 
-var (
-	// DefaultRedirectURL must be one pointing to 127.0.0.1 but you may change the port.
-	// This redirect URL must be an allowed url for your passed clientID, so e.g. the public client must allow for users to
-	// redirect to http://127.0.0.1:16666. Do not use http://localhost:16666, you will see why.
-	DefaultRedirectURL = "http://127.0.0.1:16666/"
-
-	// DefaultClientID is usually a public client that doe snot require any credentials, thus the secret is empty.
-	DefaultClientID = "public"
-
-	// DefaultClientSecret is usually the public client that does not require any further configuration nor credentials.
-	DefaultClientSecret = ""
-
-	// DefaultCacheDirectory is the directory that is used to store cached tokens.
-	DefaultCacheDirectory = "$HOME/.oidc_keys"
-)
-
-func init() {
-	// initialize default home directory with a valid path
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Printf("Failed to find home directory: %v\n", err)
-		return
+func newTokenFromOidc(token *oidc.Token) *kcauth.Token {
+	resultToken := &kcauth.Token{
+		AccessToken:           token.AccessToken,
+		RefreshToken:          token.RefreshToken,
+		AccessTokenExpiresAt:  token.AccessTokenExpiry,
+		RefreshTokenExpiresAt: kcauth.EpochZero,
 	}
-	DefaultCacheDirectory = path.Join(home, ".oidc_keys")
+
+	return resultToken
 }
 
 func refreshToken(token *oidc.Token, oidcConfig login.OIDCConfig, issuerURL, redirectURL string) (*oidc.Token, error) {
@@ -55,7 +37,7 @@ func refreshToken(token *oidc.Token, oidcConfig login.OIDCConfig, issuerURL, red
 	return refresher.OIDCToken(context.Background())
 }
 
-func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory string) (*oidc.Token, error) {
+func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory string) (*kcauth.Token, error) {
 
 	// config
 	oidcConfig := login.OIDCConfig{
@@ -78,7 +60,7 @@ func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory st
 	token, err := cache.Token()
 	if err == nil && token != nil {
 		if !token.IsAccessTokenExpired() {
-			return token, nil
+			return newTokenFromOidc(token), nil
 		}
 		token, err = refreshToken(token, oidcConfig, issuerURL, redirectURL)
 		if err != nil {
@@ -88,7 +70,7 @@ func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory st
 		if err != nil {
 			return nil, err
 		}
-		return token, err
+		return newTokenFromOidc(token), err
 	}
 
 	cb, closeSrv, err := login.NewServer(redirectURL)
@@ -114,22 +96,5 @@ func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory st
 		return nil, err
 	}
 
-	return token, nil
-}
-
-// Login uses the provided issuerURL to fetch an access token as well as a refresh token.
-// usually the expected URL is something along the line sof https://keycloak.com/auth/realms/MYREALM
-// accessToken returns the user's access token that can be used to call api endpoints.
-// That token is usually passed in the Authorization http header like this:
-// Authorization: Bearer <access_token>
-func Login(accessToken, oidcURL *string) configo.ParserFunc {
-
-	return func(value string) error {
-		token, err := oidcLogin(DefaultClientID, DefaultClientSecret, *oidcURL, DefaultRedirectURL, DefaultCacheDirectory)
-		if err != nil {
-			return err
-		}
-		*accessToken = token.AccessToken
-		return nil
-	}
+	return newTokenFromOidc(token), nil
 }

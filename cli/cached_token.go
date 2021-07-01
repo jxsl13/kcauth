@@ -48,7 +48,7 @@ func saveToken(tokenPath string, token *kcauth.Token) (*kcauth.Token, error) {
 	var perm fs.FileMode = 0700
 	cacheToken := token
 
-	data, err := json.Marshal(cacheToken)
+	data, err := json.MarshalIndent(cacheToken, "", " ")
 	if err != nil {
 		return nil, err
 	}

@@ -96,7 +96,12 @@ func jwtLogin(issuerURL, clientID, clientSecret, cacheDirectory string) (*kcauth
 		if !cachedToken.IsRefreshTokenExpired() {
 			token, err := refreshToken(issuerURL, clientID, clientSecret, cachedToken.RefreshToken)
 			if err == nil {
-				return token, nil
+				// save refreshed token back to file
+				cachedToken, err = saveToken(cachedFile, token)
+				if err != nil {
+					return nil, err
+				}
+				return cachedToken, nil
 			}
 		}
 		// refresh token is also expired or failed to refresh

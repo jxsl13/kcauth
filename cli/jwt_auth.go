@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"path"
 	"regexp"
+	"time"
 
 	gocloak "github.com/Nerzal/gocloak/v8"
 	"github.com/jxsl13/kcauth"
-	"github.com/jxsl13/simple-configo/parsers"
 )
 
 var (
@@ -83,13 +83,13 @@ func refreshToken(issuerUrl, clientID, clientSecret, refreshToken string) (*kcau
 	return newTokenFromGoCloak(token), nil
 }
 
-func jwtLogin(issuerURL, clientID, clientSecret, cacheDirectory string) (*kcauth.Token, error) {
+func jwtLogin(issuerURL, username, password, clientID, clientSecret, cacheDirectory string) (*kcauth.Token, error) {
 	tokenFile := fmt.Sprintf("token_jwt_%s", clientID)
 	cachedFile := path.Join(cacheDirectory, tokenFile)
 	cachedToken, err := loadToken(cachedFile)
 	if err == nil {
 		// loaded token successfully
-		if !cachedToken.IsAccessTokenExpired() {
+		if !cachedToken.IsAccessTokenExpiredIn(5 * time.Second) {
 			return cachedToken, nil
 		}
 		// access token expired
@@ -107,19 +107,17 @@ func jwtLogin(issuerURL, clientID, clientSecret, cacheDirectory string) (*kcauth
 		// refresh token is also expired or failed to refresh
 	}
 
-	// we need a new token
-	username := ""
-	password := ""
-
 	// this is only empty when we use the public grant type
 	if clientSecret == "" {
-		err = parsers.PromptText(&username, "Enter your username>")("")
-		if err != nil {
-			return nil, err
+		if username == "" {
+			username = promptText("Enter your username>")
 		}
-		err = parsers.PromptPassword(&password, "Enter your password>")("")
-		if err != nil {
-			return nil, err
+
+		if password == "" {
+			password, err = promptPassword("Enter your password>")
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	// passing an empty username and password triggers the client_credentials grant type

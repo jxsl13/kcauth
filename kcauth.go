@@ -6,8 +6,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/mitchellh/go-homedir"
 )
 
 var (
@@ -24,7 +22,8 @@ var (
 
 func init() {
 	// initialize default home directory with a valid path
-	home, err := homedir.Dir()
+
+	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("Failed to find home directory: %v\n", err)
 		return

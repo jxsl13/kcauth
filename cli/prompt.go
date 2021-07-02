@@ -23,10 +23,10 @@ func promptPassword(linePrefix string) (string, error) {
 
 	fmt.Print(linePrefix)
 	password, err := term.ReadPassword(stdinFd)
+	fmt.Print("\n")
 
 	if err != nil {
 		return "", err
 	}
-	fmt.Print("\n")
 	return string(password), nil
 }

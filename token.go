@@ -26,6 +26,14 @@ func (ct *Token) IsAccessTokenExpired() bool {
 	return time.Now().After(ct.AccessTokenExpiresAt)
 }
 
+func (ct *Token) IsAccessTokenExpiredIn(duration time.Duration) bool {
+	if ct.AccessTokenExpiresAt.Equal(EpochZero) {
+		return false
+	}
+	// now + 10 sec is after expiration time?
+	return time.Now().Add(duration).After(ct.AccessTokenExpiresAt)
+}
+
 //IsRefreshTokenExpired checks whether the refresh token has already expired.
 // Is that's the case,the user needs to usually enter his credentials again.
 func (ct *Token) IsRefreshTokenExpired() bool {

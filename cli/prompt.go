@@ -27,6 +27,6 @@ func promptPassword(linePrefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Print("\n")
 	return string(password), nil
 }

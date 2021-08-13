@@ -10,8 +10,8 @@ import (
 
 var (
 
-	// DefaultCacheDirectory is the directory that is used to store cached tokens.
-	DefaultCacheDirectory = "$HOME/.oidc_keys"
+	// DefaultTokenFilePath is the full file path to the cached token.
+	DefaultTokenFilePath = "$HOME/.config/kcauth/token.json"
 
 	// DefaultClientID is usually a public client that doe snot require any credentials, thus the secret is empty.
 	DefaultClientID = "public"
@@ -22,17 +22,15 @@ var (
 
 func init() {
 	// initialize default home directory with a valid path
-
 	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("Failed to find home directory: %v\n", err)
 		return
 	}
 	appName := fileNameWithoutExtension(os.Args[0])
+	cacheDir := path.Join(home, ".config", appName)
 
-	// init
-	DefaultCacheDirectory = path.Join(home, ".oidc_keys", appName)
-
+	DefaultTokenFilePath = path.Join(cacheDir, "token.json")
 }
 
 // OS agnostic application name

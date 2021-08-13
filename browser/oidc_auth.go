@@ -8,7 +8,6 @@ import (
 	"github.com/jxsl13/kcauth"
 	"github.com/jxsl13/oidc"
 	"github.com/jxsl13/oidc/login"
-	disk "github.com/jxsl13/oidc/login/diskcache"
 )
 
 func newTokenFromOidc(token *oidc.Token) *kcauth.Token {
@@ -37,7 +36,7 @@ func refreshToken(token *oidc.Token, oidcConfig login.OIDCConfig, issuerURL, red
 	return refresher.OIDCToken(context.Background())
 }
 
-func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory string) (*kcauth.Token, error) {
+func oidcLogin(clientID, clientSecret, issuerURL, redirectURL string) (*kcauth.Token, error) {
 
 	// config
 	oidcConfig := login.OIDCConfig{
@@ -53,7 +52,7 @@ func oidcLogin(clientID, clientSecret, issuerURL, redirectURL, cacheDirectory st
 		NonceCheck: true,
 	}
 	// see also other caches e.g k8s.NewCache.
-	cache := disk.NewCache(cacheDirectory, oidcConfig)
+	cache := newInMemoryCache(oidcConfig)
 
 	// try getting token from file
 	// if successfully fetched token, simply return it

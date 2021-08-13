@@ -2,28 +2,14 @@ package cli
 
 import (
 	"context"
-	"fmt"
-	"path"
-	"regexp"
-	"time"
 
 	gocloak "github.com/Nerzal/gocloak/v8"
 	"github.com/jxsl13/kcauth"
+	"github.com/jxsl13/kcauth/internal"
 )
-
-var (
-	extractRegex = regexp.MustCompile(`^(https?://[a-z0-9-\.:]{5,})/auth/realms/([^/]+)/?.*$`)
-)
-
-func extractRealm(url string) (domain, realm string, err error) {
-	if matches := extractRegex.FindStringSubmatch(url); matches != nil {
-		return matches[1], matches[2], nil
-	}
-	return "", "", fmt.Errorf("invalid keycloak realm url: %s", url)
-}
 
 func getOfflineToken(realmURL, clientID, clientSecret, username, password string) (*kcauth.Token, error) {
-	keycloakURL, realm, err := extractRealm(realmURL)
+	keycloakURL, realm, err := internal.ExtractRealm(realmURL)
 	if err != nil {
 		return nil, err
 	}
@@ -60,74 +46,9 @@ func getOfflineToken(realmURL, clientID, clientSecret, username, password string
 		return nil, err
 	}
 
-	return newTokenFromGoCloak(token), nil
+	return internal.NewTokenFromGoCloak(token), nil
 }
 
-func refreshToken(issuerUrl, clientID, clientSecret, refreshToken string) (*kcauth.Token, error) {
-	keycloakURL, realm, err := extractRealm(issuerUrl)
-	if err != nil {
-		return nil, err
-	}
-	ctx := context.Background()
-	client := gocloak.NewClient(keycloakURL)
-	token, err := client.RefreshToken(
-		ctx,
-		refreshToken,
-		clientID,
-		clientSecret,
-		realm,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return newTokenFromGoCloak(token), nil
-}
-
-func jwtLogin(issuerURL, username, password, clientID, clientSecret, cacheDirectory string) (*kcauth.Token, error) {
-	tokenFile := fmt.Sprintf("token_jwt_%s", clientID)
-	cachedFile := path.Join(cacheDirectory, tokenFile)
-	cachedToken, err := loadToken(cachedFile)
-	if err == nil {
-		// loaded token successfully
-		if !cachedToken.IsAccessTokenExpiredIn(5 * time.Second) {
-			return cachedToken, nil
-		}
-		// access token expired
-		if !cachedToken.IsRefreshTokenExpired() {
-			token, err := refreshToken(issuerURL, clientID, clientSecret, cachedToken.RefreshToken)
-			if err == nil {
-				// save refreshed token back to file
-				cachedToken, err = saveToken(cachedFile, token)
-				if err != nil {
-					return nil, err
-				}
-				return cachedToken, nil
-			}
-		}
-		// refresh token is also expired or failed to refresh
-	}
-
-	// this is only empty when we use the public grant type
-	if clientSecret == "" {
-		if username == "" {
-			username = promptText("Enter your username>")
-		}
-
-		if password == "" {
-			password, err = promptPassword("Enter your password>")
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	// passing an empty username and password triggers the client_credentials grant type
-	token, err := getOfflineToken(issuerURL, clientID, clientSecret, username, password)
-	if err != nil {
-		return nil, err
-	}
-	cachedToken, err = saveToken(cachedFile, token)
-	if err != nil {
-		return nil, err
-	}
-	return cachedToken, nil
+func jwtLogin(issuerURL, username, password, clientID, clientSecret string) (*kcauth.Token, error) {
+	return getOfflineToken(issuerURL, clientID, clientSecret, username, password)
 }

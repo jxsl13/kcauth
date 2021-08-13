@@ -16,10 +16,33 @@ The second workflow is where you pass your credentials to the application and th
 # Example usage in combination with the  simple-configo library
 
 ```go
+func init() {
+    // options you want to change for customization
+	kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json"
+	kcauth.DefaultClientID = "public"
+	kcauth.DefaultClientSecret = ""
+
+    // function that determines whether we are currently in a headless environment
+    // where you cannot use a web browser due to not having a display attached
+    auth.HeadlessFunction = auth.HeadlessWindowsNoRestYes
+
+    // prompt behavior of Password prompts
+    auth.DefaultPasswordPrompt = promptui.Prompt{
+		Label:       "Password",
+		Mask:        '*',
+		HideEntered: true,
+	}
+
+    // prompt behavior of Username prompts
+	auth.DefaultUsernamePrompt = promptui.Prompt{
+		Label:       "Username",
+		HideEntered: true,
+	}
+}
+
 type Config struct {
-    KeycloakURL     string
-    OIDCToken       string
-    JWTToken        string
+    issuerURL   string
+    Token       kcauth.Token
 }
 
 func (c *Config) Name() string {
@@ -27,33 +50,22 @@ func (c *Config) Name() string {
 }
 
 func (c *Config) Options() configo.Options {
-    appName := c.Name()
-    cli.SetApplicatioName(appName)
-    tokenFile := fmt.Sprintf("token_%s_%s", appName, DefaultClientID)
+
 
     return configo.Options{
         {
-            Key:           "KEYCLOAK_URL",
-            Mandatory:     true,
-            Description:   "Authentication Keycloak that provides the authorization token.",
-            DefaultValue:  "https://some-keycloak.com/auth/realms/my_realm",
-            ParseFunction: parsers.String(&c.KeycloakURL),
+            Key:             "KEYCLOAK_URL",
+            Mandatory:       true,
+            Description:     "Authentication Keycloak that provides the authorization token.",
+            DefaultValue:    "https://some-keycloak.com/auth/realms/my_realm",
+            ParseFunction:   parsers.String(&c.issuerURL),
+            UnparseFunction: unparsers.String(&c.issuerURL),
         },
         {
-            Key: "Browser login",
-            IsPseudoOption: true,
-            ParseFunction: browser.Login(
-                &c.OIDCToken,
-                &c.KeycloakURL,
-            ),
-        },
-        {
-            Key:            "CLI Login prompt",
-            IsPseudoOption: true,
-            ParseFunction: cli.Login(
-                &c.JWTToken,
-                &c.KeycloakURL,
-                ),
+            Key:             "User Login",
+            IsPseudoOption:  true,
+            ParseFunction:   auth.Login(&c.Token, &c.issuerURL),
+            UnparseFunction: auth.SaveToken(&.Token),
         },
     }
 }

@@ -16,24 +16,35 @@ The second workflow is where you pass your credentials to the application and th
 # Example usage in combination with the  simple-configo library
 
 ```go
+package main
+
+import (
+	"github.com/jxsl13/kcauth"
+	"github.com/jxsl13/kcauth/auth"
+	configo "github.com/jxsl13/simple-configo"
+	"github.com/jxsl13/simple-configo/parsers"
+	"github.com/jxsl13/simple-configo/unparsers"
+	"github.com/manifoldco/promptui"
+)
+
 func init() {
-    // options you want to change for customization
+	// options you want to change for customization
 	kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json"
 	kcauth.DefaultClientID = "public"
 	kcauth.DefaultClientSecret = ""
 
-    // function that determines whether we are currently in a headless environment
-    // where you cannot use a web browser due to not having a display attached
-    auth.HeadlessFunction = auth.HeadlessWindowsNoRestYes
+	// function that determines whether we are currently in a headless environment
+	// where you cannot use a web browser due to not having a display attached
+	auth.HeadlessFunction = auth.HeadlessWindowsNoRestYes
 
-    // prompt behavior of Password prompts
-    auth.DefaultPasswordPrompt = promptui.Prompt{
+	// prompt behavior of Password prompts
+	auth.DefaultPasswordPrompt = promptui.Prompt{
 		Label:       "Password",
 		Mask:        '*',
 		HideEntered: true,
 	}
 
-    // prompt behavior of Username prompts
+	// prompt behavior of Username prompts
 	auth.DefaultUsernamePrompt = promptui.Prompt{
 		Label:       "Username",
 		HideEntered: true,
@@ -41,33 +52,31 @@ func init() {
 }
 
 type Config struct {
-    issuerURL   string
-    Token       kcauth.Token
+	issuerURL string
+	Token     kcauth.Token
 }
 
 func (c *Config) Name() string {
-    return "my cli app"
+	return "my cli app"
 }
 
 func (c *Config) Options() configo.Options {
 
-
-    return configo.Options{
-        {
-            Key:             "KEYCLOAK_URL",
-            Mandatory:       true,
-            Description:     "Authentication Keycloak that provides the authorization token.",
-            DefaultValue:    "https://some-keycloak.com/auth/realms/my_realm",
-            ParseFunction:   parsers.String(&c.issuerURL),
-            UnparseFunction: unparsers.String(&c.issuerURL),
-        },
-        {
-            Key:             "User Login",
-            IsPseudoOption:  true,
-            ParseFunction:   auth.Login(&c.Token, &c.issuerURL),
-            UnparseFunction: auth.SaveToken(&.Token),
-        },
-    }
+	return configo.Options{
+		{
+			Key:             "KEYCLOAK_URL",
+			Mandatory:       true,
+			Description:     "Authentication Keycloak that provides the authorization token.",
+			DefaultValue:    "https://some-keycloak.com/auth/realms/my_realm",
+			ParseFunction:   parsers.String(&c.issuerURL),
+			UnparseFunction: unparsers.String(&c.issuerURL),
+		},
+		{
+			Key:             "User Login",
+			IsPseudoOption:  true,
+			ParseFunction:   auth.Login(&c.Token, &c.issuerURL),
+			UnparseFunction: auth.SaveToken(&c.Token),
+		},
+	}
 }
-
 ```

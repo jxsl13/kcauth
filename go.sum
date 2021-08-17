@@ -152,8 +152,8 @@ github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a h1:FaWFmfWdAUKbSCtOU
 github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a/go.mod h1:UJSiEoRfvx3hP73CvoARgeLjaIOjybY9vj8PUPPFGeU=
 github.com/jxsl13/oidc v0.6.3 h1:IaXjIODGcZFPCT82NvbtQx/OQ6mlJsNWfBrWnddL3T4=
 github.com/jxsl13/oidc v0.6.3/go.mod h1:2d3euMKrRxVQzxet9SuAS1kwexE69SCHLKXhK08QDH8=
-github.com/jxsl13/simple-configo v1.20.0 h1:j/CaE3XcxAZGSgFqvqB+gLFZ1QMceRMnWapa5SfMFcc=
-github.com/jxsl13/simple-configo v1.20.0/go.mod h1:4RI3UDpACmXHEVciQcZpqJPS9JHVZUSAhLrlIoJHYgI=
+github.com/jxsl13/simple-configo v1.20.1 h1:is67ycNnZ2OEhr3LCR03YELXmYIJSpBlWyhURflZ47E=
+github.com/jxsl13/simple-configo v1.20.1/go.mod h1:4RI3UDpACmXHEVciQcZpqJPS9JHVZUSAhLrlIoJHYgI=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

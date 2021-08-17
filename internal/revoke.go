@@ -21,14 +21,15 @@ func RevokeToken(token string, hint ...tokenTypeHint) (*string, error) {
 
 	client := gocloak.NewClient(url)
 	ctx := context.Background()
-	req := client.RestyClient().R().
+	req := client.RestyClient().
+		SetHostURL(url).
+		R().
 		SetContext(ctx).
 		SetFormData(form).
 		SetPathParams(map[string]string{
-			"url":   url,
 			"realm": realm,
 		})
-	resp, err := req.Post("{url}/auth/realms/{realm}/protocol/openid-connect/revoke")
+	resp, err := req.Post("/auth/realms/{realm}/protocol/openid-connect/revoke")
 	if err != nil {
 		return nil, err
 	}

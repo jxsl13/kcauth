@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/Nerzal/gocloak/v8 v8.5.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/jxsl13/oidc v0.6.3
 	github.com/jxsl13/simple-configo v1.20.2
 	github.com/lestrrat-go/jwx v1.2.5

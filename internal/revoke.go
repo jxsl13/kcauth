@@ -6,10 +6,10 @@ import (
 	"github.com/Nerzal/gocloak/v8"
 )
 
-func RevokeToken(token string, hint ...tokenTypeHint) (*string, error) {
+func RevokeToken(token string, hint ...tokenTypeHint) error {
 	url, realm, err := UrlRealmFromToken(token)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	form := make(map[string]string, 2)
@@ -31,9 +31,13 @@ func RevokeToken(token string, hint ...tokenTypeHint) (*string, error) {
 		})
 	resp, err := req.Post("/auth/realms/{realm}/protocol/openid-connect/revoke")
 	if err != nil {
-		return nil, err
+		return err
 	}
-	body := string(resp.Body())
-	return &body, nil
+
+	_, err = checkResponse(resp)
+	if err != nil {
+		return err
+	}
+	return nil
 
 }

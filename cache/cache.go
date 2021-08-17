@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jxsl13/kcauth"
+	"github.com/jxsl13/kcauth/internal"
 	configo "github.com/jxsl13/simple-configo"
 )
 
@@ -36,7 +37,7 @@ func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ActionFunc
 		}
 
 		// only access token expired
-		refreshedToken, err := refreshToken(kcauth.DefaultClientID, kcauth.DefaultClientSecret, cachedToken.RefreshToken)
+		refreshedToken, err := internal.RefreshToken(kcauth.DefaultClientID, kcauth.DefaultClientSecret, cachedToken.RefreshToken)
 		if err != nil {
 			return err
 		}

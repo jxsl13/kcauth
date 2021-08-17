@@ -22,13 +22,6 @@ func getOfflineToken(realmURL, clientID, clientSecret, username, password string
 		grantType = "client_credentials"
 	}
 
-	scopes := &[]string{"openid"}
-
-	// offline access only for non automated workflows.
-	if grantType == "password" {
-		*scopes = append(*scopes, "offline_access")
-	}
-
 	token, err := client.GetToken(
 		ctx,
 		realm,
@@ -36,7 +29,7 @@ func getOfflineToken(realmURL, clientID, clientSecret, username, password string
 			ClientID:      gocloak.StringP(clientID),
 			ClientSecret:  gocloak.StringP(clientSecret),
 			GrantType:     gocloak.StringP(grantType),
-			Scopes:        scopes,
+			Scopes:        &[]string{"openid", "offline_access"},
 			ResponseTypes: &[]string{"token"},
 			Username:      gocloak.StringP(username),
 			Password:      gocloak.StringP(password),

@@ -8,9 +8,12 @@ import (
 
 func checkResponse(resp *resty.Response) (*resty.Response, error) {
 	if resp.StatusCode()/100 > 3 {
-		var err KeycloakError
-		json.Unmarshal(resp.Body(), err)
-		return nil, err
+		var kce KeycloakError
+		err := json.Unmarshal(resp.Body(), &kce)
+		if err != nil {
+			return nil, err
+		}
+		return nil, kce
 	}
 	return resp, nil
 }

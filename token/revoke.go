@@ -11,8 +11,11 @@ import (
 func RevokeAccessToken(token *kcauth.Token) configo.ActionFunc {
 	return func() error {
 		resp, err := internal.RevokeToken(token.AccessToken, internal.TypeHintAccessToken)
+		if err != nil {
+			return err
+		}
 		fmt.Printf("revoked token: %s\n", *resp)
-		return err
+		return nil
 
 	}
 }
@@ -20,7 +23,10 @@ func RevokeAccessToken(token *kcauth.Token) configo.ActionFunc {
 func RevokeRefreshToken(token *kcauth.Token) configo.ActionFunc {
 	return func() error {
 		resp, err := internal.RevokeToken(token.RefreshToken, internal.TypeHintRefreshToken)
+		if err != nil {
+			return err
+		}
 		fmt.Printf("revoked token: %s\n", *resp)
-		return err
+		return nil
 	}
 }

@@ -10,9 +10,9 @@ import (
 // accessToken returns the user's access token that can be used to call api endpoints.
 // That token is usually passed in the Authorization http header like this:
 // Authorization: Bearer <access_token>
-func Login(outToken *kcauth.Token, oidcURL *string) configo.ParserFunc {
+func Login(outToken *kcauth.Token, oidcURL *string) configo.ActionFunc {
 
-	return func(value string) error {
+	return func() error {
 		token, err := oidcLogin(kcauth.DefaultClientID, kcauth.DefaultClientSecret, *oidcURL, DefaultRedirectURL)
 		if err != nil {
 			return err

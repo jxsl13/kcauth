@@ -12,8 +12,8 @@ import (
 // The returned function tries to read the json formated token file at the given location tokenFilePath
 // in case the token is expired but the refresh token still active, the whole token is refreshed before
 // the outToken is set to the new token. The refreshed token is never
-func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ParserFunc {
-	return func(value string) error {
+func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ActionFunc {
+	return func() error {
 		if outToken == nil {
 			return errors.New("outToken is nil")
 		}
@@ -52,20 +52,20 @@ func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ParserFunc
 	}
 }
 
-// SaveToken is an unpoarser function that takes the internally saved token and saves it to
-// the provided file
-func SaveToken(inToken *kcauth.Token, tokenFilePath *string) configo.UnparserFunc {
-	return func() (string, error) {
+// SaveToken is an action function that takes the inToken and saves it to
+// the provided file destination at tokenFilePath.
+func SaveToken(inToken *kcauth.Token, tokenFilePath *string) configo.ActionFunc {
+	return func() error {
 		if inToken == nil {
-			return "", errors.New("inToken is nil")
+			return errors.New("inToken is nil")
 		}
 		_, err := saveToken(*tokenFilePath, inToken)
 		if err != nil {
-			return "", err
+			return err
 		}
 		// sdo not add this to any result map, as
 		// this is a pseudo option that doe snot serialize anything into a
 		// configuration map
-		return "", configo.ErrSkipUnparse
+		return configo.ErrSkipUnparse
 	}
 }

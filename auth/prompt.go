@@ -20,8 +20,8 @@ var (
 	}
 )
 
-func PromptPassword(outPassword *string) configo.ParserFunc {
-	return func(value string) error {
+func PromptPassword(outPassword *string) configo.ActionFunc {
+	return func() error {
 		password, err := DefaultPasswordPrompt.Run()
 		if err != nil {
 			return err
@@ -31,8 +31,8 @@ func PromptPassword(outPassword *string) configo.ParserFunc {
 	}
 }
 
-func PromptText(outUsername *string) configo.ParserFunc {
-	return func(value string) error {
+func PromptText(outUsername *string) configo.ActionFunc {
+	return func() error {
 		username, err := DefaultUsernamePrompt.Run()
 		if err != nil {
 			return err

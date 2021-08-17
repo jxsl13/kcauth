@@ -9,7 +9,7 @@ import (
 	"github.com/jxsl13/kcauth/cache"
 	"github.com/jxsl13/kcauth/cli"
 	configo "github.com/jxsl13/simple-configo"
-	"github.com/jxsl13/simple-configo/parsers"
+	"github.com/jxsl13/simple-configo/actions"
 )
 
 var (
@@ -21,20 +21,20 @@ var (
 // or tries to authenticate you by providing your credentials via the cli or via your web browser that
 // allows you to login at your provided issuer URL.
 // issuerUrl: e.g. https://auth.example.com/auth/realms/myRealm
-func Login(outToken *kcauth.Token, issuerUrl *string) configo.ParserFunc {
+func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 	// variable sthat are
 	var (
 		username string
 		password string
 	)
-	return parsers.Or(
+	return actions.Or(
 		cache.LoadToken(outToken, &kcauth.DefaultTokenFilePath), // in case loading of the token fails, we want to trigger a login flow
-		parsers.If(HeadlessFunction(), // in case we are headless, trigger cli login flow, else oidc web browser login flow
-			parsers.And(
+		actions.If(HeadlessFunction(), // in case we are headless, trigger cli login flow, else oidc web browser login flow
+			actions.And(
 				PromptText(&username),
 				PromptPassword(&password),
 				cli.Login(outToken, issuerUrl, &username, &password),
-				func(value string) error {
+				func() error {
 					// wipe memory after login
 					username = ""
 					password = ""
@@ -46,6 +46,9 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ParserFunc {
 	)
 }
 
-func SaveToken(inToken *kcauth.Token) configo.UnparserFunc {
+// SaveToken provides an action to save a token to a sane default location.
+// The default token location depends on the application name and can be
+// found in the variable kcauth.DefaultTokenFilePath.
+func SaveToken(inToken *kcauth.Token) configo.ActionFunc {
 	return cache.SaveToken(inToken, &kcauth.DefaultTokenFilePath)
 }

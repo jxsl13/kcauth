@@ -37,8 +37,8 @@ import (
 // that can be left untouched as this library provides sane default values.
 func init() {
 	kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json" // this is dynamically initialized at startup
-	kcauth.DefaultClientID = "public"
-	kcauth.DefaultClientSecret = ""
+	kcauth.DefaultClientID 		= "public"							// if you want to use a different client id
+	kcauth.DefaultClientSecret 	= ""								// if you want to provide a client secret
 
 	// function that determines whether we are currently in a headless environment
 	// where you cannot use a web browser due to not having a display attached
@@ -68,17 +68,17 @@ func (c *Config) Options() configo.Options {
 	return configo.Options{
 		{
 			Key:             "KEYCLOAK_URL",
-			Mandatory:       true,
+			Mandatory:       true,									// non-zero default value satisfies this condition
 			Description:     "Authentication Keycloak that provides the authorization token.",
 			DefaultValue:    "https://some-keycloak.com/auth/realms/my_realm",
-			ParseFunction:   parsers.String(&c.issuerURL),
-			UnparseFunction: unparsers.String(&c.issuerURL),
+			ParseFunction:   parsers.String(&c.issuerURL),			// option that evaluates env map values
+			UnparseFunction: unparsers.String(&c.issuerURL),		// serializes values bavk into a string.
 		},
 		{
-			Key:             "User Login",
-			IsPseudoOption:  true,
-			ParseFunction:   auth.Login(&c.Token, &c.issuerURL),
-			UnparseFunction: auth.SaveToken(&c.Token),
+			Key:             	"User Login",						// pseudo option that consists solely of actions
+			PreParseAction:   	auth.Login(&c.Token, &c.issuerURL),	// first action executed on parsing
+			PostParseAction: 	auth.SaveToken(&c.Token), 			// second action executed on parsing
+			PreUnparseAction: 	auth.SaveToken(&c.Token), 			// third action executed before unpasing
 		},
 	}
 }

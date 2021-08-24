@@ -25,74 +25,74 @@ This one step authentification is shown in the example below.
 package main
 
 import (
-	"github.com/jxsl13/kcauth"
-	"github.com/jxsl13/kcauth/auth"
-	configo "github.com/jxsl13/simple-configo"
-	"github.com/jxsl13/simple-configo/actions"
-	"github.com/jxsl13/simple-configo/parsers"
-	"github.com/jxsl13/simple-configo/unparsers"
-	"github.com/manifoldco/promptui"
+    "github.com/jxsl13/kcauth"
+    "github.com/jxsl13/kcauth/auth"
+    configo "github.com/jxsl13/simple-configo"
+    "github.com/jxsl13/simple-configo/actions"
+    "github.com/jxsl13/simple-configo/parsers"
+    "github.com/jxsl13/simple-configo/unparsers"
+    "github.com/manifoldco/promptui"
 )
 
 // all of the options shown in the init function are optional configuration parameters
 // that can be left untouched as this library provides sane default values.
 func init() {
-	kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json" // this is dynamically initialized at startup
-	kcauth.DefaultClientID 		= "public"							// if you want to use a different client id
-	kcauth.DefaultClientSecret 	= ""								// if you want to provide a client secret
+    kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json" // this is dynamically initialized at startup
+    kcauth.DefaultClientID 		= "public"							// if you want to use a different client id
+    kcauth.DefaultClientSecret 	= ""								// if you want to provide a client secret
 
-	// function that determines whether we are currently in a headless environment
-	// where you cannot use a web browser due to not having a display attached
-	auth.HeadlessFunction = auth.HeadlessWindowsNoRestYes
+    // function that determines whether we are currently in a headless environment
+    // where you cannot use a web browser due to not having a display attached
+    auth.HeadlessFunction = auth.HeadlessWindowsNoRestYes
 
-	// prompt behavior of Password prompts
-	auth.DefaultPasswordPrompt = promptui.Prompt{
-		Label:       "Password",
-		Mask:        '*',
-		HideEntered: true,
-	}
+    // prompt behavior of Password prompts
+    auth.DefaultPasswordPrompt = promptui.Prompt{
+        Label:       "Password",
+        Mask:        '*',
+        HideEntered: true,
+    }
 
-	// prompt behavior of Username prompts
-	auth.DefaultUsernamePrompt = promptui.Prompt{
-		Label:       "Username",
-		HideEntered: true,
-	}
+    // prompt behavior of Username prompts
+    auth.DefaultUsernamePrompt = promptui.Prompt{
+        Label:       "Username",
+        HideEntered: true,
+    }
 }
 
 type Config struct {
-	issuerURL string
-	Token     kcauth.Token
+    issuerURL string
+    Token     kcauth.Token
 }
 
 // noOp returns a function that does nothing
 func noOp() (func() err) {
-	return func() err {
-		return nil
-	}
+    return func() err {
+        return nil
+    }
 }
 
 func (c *Config) Options() configo.Options {
 
-	return configo.Options{
-		{
-			Key:             "KEYCLOAK_URL",
-			Mandatory:       true, // non-zero default value satisfies this condition
-			Description:     "Authentication Keycloak that provides the authorization token.",
-			DefaultValue:    "https://some-keycloak.com/auth/realms/my_realm",
-			ParseFunction:   parsers.String(&c.issuerURL), // option that evaluates env map values
-			UnparseFunction: unparsers.String(&c.issuerURL), // serializes values bavk into a string.
-		},
-		{
-			Key:             	"User Login", // pseudo option that consists solely of actions
-			PreParseAction:   	auth.Login(&c.Token, &c.issuerURL), // first action executed on parsing
-			PostParseAction: 	auth.SaveToken(&c.Token), // second action executed on parsing
-			PreUnparseAction: 	auth.SaveToken(&c.Token), // third action executed before unpasing
-		},
-		{
-			Key:             	"Delete Token", // we can introduce a condition, e.g. a cli flag like --reset for cache deletion
-			PreParseAction:   	actions.If(true, auth.DeleteToken(), noOp()),
-			PreUnparseAction;   actions.If(true, auth.DeleteToken(), noOp()),
-		},
-	}
+    return configo.Options{
+        {
+            Key:               "KEYCLOAK_URL",
+            Mandatory:         true, // non-zero default value satisfies this condition
+            Description:       "Authentication Keycloak that provides the authorization token.",
+            DefaultValue:      "https://some-keycloak.com/auth/realms/my_realm",
+            ParseFunction:     parsers.String(&c.issuerURL), // option that evaluates env map values
+            UnparseFunction:   unparsers.String(&c.issuerURL), // serializes values bavk into a string.
+        },
+        {
+            Key:             	"User Login", // pseudo option that consists solely of actions
+            PreParseAction:   	auth.Login(&c.Token, &c.issuerURL), // first action executed on parsing
+            PostParseAction: 	auth.SaveToken(&c.Token), // second action executed on parsing
+            PreUnparseAction: 	auth.SaveToken(&c.Token), // third action executed before unpasing
+        },
+        {
+            Key:                "Delete Token On Condition", // we can introduce a condition, e.g. a cli flag like --reset for cache deletion
+            PreParseAction:     actions.If(true, auth.DeleteToken(), noOp()),
+            PreUnparseAction:   actions.If(true, auth.DeleteToken(), noOp()),
+        },
+    }
 }
 ```

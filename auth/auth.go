@@ -63,3 +63,13 @@ func SaveToken(inToken *kcauth.Token) configo.ActionFunc {
 		cache.SaveToken(inToken, &kcauth.DefaultTokenFilePath),
 	)
 }
+
+// DeleteToken deletes the token from whatever location that it has been saved at
+// either from the keyring or from a local directory path.
+func DeleteToken() configo.ActionFunc {
+	// we delete both, in case both tokens do not exist, nothing happens.
+	return actions.And(
+		cache.DeleteTokenFromKeyring(&kcauth.DefaultAppName, &kcauth.DefaultKeyringUsername),
+		cache.DeleteToken(&kcauth.DefaultTokenFilePath), // does not return an error in case no such file was found, basically never errors
+	)
+}

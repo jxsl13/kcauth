@@ -68,17 +68,17 @@ func (c *Config) Options() configo.Options {
 	return configo.Options{
 		{
 			Key:             "KEYCLOAK_URL",
-			Mandatory:       true,									// non-zero default value satisfies this condition
+			Mandatory:       true, // non-zero default value satisfies this condition
 			Description:     "Authentication Keycloak that provides the authorization token.",
 			DefaultValue:    "https://some-keycloak.com/auth/realms/my_realm",
-			ParseFunction:   parsers.String(&c.issuerURL),			// option that evaluates env map values
-			UnparseFunction: unparsers.String(&c.issuerURL),		// serializes values bavk into a string.
+			ParseFunction:   parsers.String(&c.issuerURL), // option that evaluates env map values
+			UnparseFunction: unparsers.String(&c.issuerURL), // serializes values bavk into a string.
 		},
 		{
-			Key:             	"User Login",						// pseudo option that consists solely of actions
-			PreParseAction:   	auth.Login(&c.Token, &c.issuerURL),	// first action executed on parsing
-			PostParseAction: 	auth.SaveToken(&c.Token), 			// second action executed on parsing
-			PreUnparseAction: 	auth.SaveToken(&c.Token), 			// third action executed before unpasing
+			Key:             	"User Login", // pseudo option that consists solely of actions
+			PreParseAction:   	auth.Login(&c.Token, &c.issuerURL), // first action executed on parsing
+			PostParseAction: 	auth.SaveToken(&c.Token), // second action executed on parsing
+			PreUnparseAction: 	auth.SaveToken(&c.Token), // third action executed before unpasing
 		},
 	}
 }

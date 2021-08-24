@@ -36,7 +36,7 @@ import (
 // all of the options shown in the init function are optional configuration parameters
 // that can be left untouched as this library provides sane default values.
 func init() {
-	kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json"
+	kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json" // this is dynamically initialized at startup
 	kcauth.DefaultClientID = "public"
 	kcauth.DefaultClientSecret = ""
 
@@ -61,10 +61,6 @@ func init() {
 type Config struct {
 	issuerURL string
 	Token     kcauth.Token
-}
-
-func (c *Config) Name() string {
-	return "my cli app"
 }
 
 func (c *Config) Options() configo.Options {

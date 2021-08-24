@@ -9,7 +9,6 @@ import (
 func RevokeAccessToken(token *kcauth.Token) configo.ActionFunc {
 	return func() error {
 		return internal.RevokeToken(token.AccessToken, internal.TypeHintAccessToken)
-
 	}
 }
 

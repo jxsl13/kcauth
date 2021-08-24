@@ -3,25 +3,25 @@ package cache
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"time"
 
 	"github.com/jxsl13/kcauth"
 	"github.com/jxsl13/kcauth/internal"
 	configo "github.com/jxsl13/simple-configo"
+	"github.com/zalando/go-keyring"
 )
 
 // This function returns a Simple-Configo ParserFunc that may be executed in a simple-configo context.
 // The returned function tries to read the json formated token file at the given location tokenFilePath
 // in case the token is expired but the refresh token still active, the whole token is refreshed before
 // the outToken is set to the new token. The refreshed token is never
-func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ActionFunc {
+func LoadTokenFromKeyring(outToken *kcauth.Token, appName, username *string) configo.ActionFunc {
 	return func() error {
 		if outToken == nil {
 			return errors.New("outToken is nil")
 		}
 
-		cachedToken, err := loadToken(*tokenFilePath)
+		cachedToken, err := loadTokenFromKeyring(*appName, *username)
 		if err != nil {
 			// failed to load
 			return err
@@ -44,7 +44,7 @@ func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ActionFunc
 			return err
 		}
 		// save refreshed token back to file
-		err = saveToken(*tokenFilePath, refreshedToken)
+		err = saveTokenInKeyring(*appName, *username, refreshedToken)
 		if err != nil {
 			return err
 		}
@@ -55,13 +55,13 @@ func LoadToken(outToken *kcauth.Token, tokenFilePath *string) configo.ActionFunc
 	}
 }
 
-func loadToken(tokenPath string) (*kcauth.Token, error) {
-	b, err := ioutil.ReadFile(tokenPath)
+func loadTokenFromKeyring(appName, keyringUser string) (*kcauth.Token, error) {
+	str, err := keyring.Get(appName, keyringUser)
 	if err != nil {
 		return nil, err
 	}
 	token := &kcauth.Token{}
-	err = json.Unmarshal(b, token)
+	err = json.Unmarshal([]byte(str), token)
 	if err != nil {
 		return nil, err
 	}

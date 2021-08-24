@@ -17,7 +17,7 @@ var (
 	HeadlessFunction = HeadlessWindowsNoRestYes
 )
 
-// Login is provides a full fledged login flow that tries to fetch your cached tokens
+// Login is provides a full fledged login flow that tries to fetch your cached tokens (either from the OS specific keyring or from file)
 // or tries to authenticate you by providing your credentials via the cli or via your web browser that
 // allows you to login at your provided issuer URL.
 // issuerUrl: e.g. https://auth.example.com/auth/realms/myRealm
@@ -28,7 +28,12 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 		password string
 	)
 	return actions.Or(
-		cache.LoadToken(outToken, &kcauth.DefaultTokenFilePath), // in case loading of the token fails, we want to trigger a login flow
+		// if it's not possible to fetch from keyring nor from file, expect user to login
+		// first successful action wins
+		actions.Or(
+			cache.LoadTokenFromKeyring(outToken, &kcauth.DefaultAppName, &kcauth.DefaultKeyringUsername), // try to fetch from keying
+			cache.LoadToken(outToken, &kcauth.DefaultTokenFilePath),                                      // in case loading of the token fails, we want to trigger a login flow
+		),
 		actions.If(HeadlessFunction(), // in case we are headless, trigger cli login flow, else oidc web browser login flow
 			actions.And(
 				PromptText(&username),
@@ -47,8 +52,14 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 }
 
 // SaveToken provides an action to save a token to a sane default location.
+// It tries to save the token in the host specific keyring location or in a
+// sane default file location.
 // The default token location depends on the application name and can be
 // found in the variable kcauth.DefaultTokenFilePath.
 func SaveToken(inToken *kcauth.Token) configo.ActionFunc {
-	return cache.SaveToken(inToken, &kcauth.DefaultTokenFilePath)
+	// first successful action wins
+	return actions.Or(
+		cache.LoadTokenFromKeyring(inToken, &kcauth.DefaultAppName, &kcauth.DefaultKeyringUsername),
+		cache.SaveToken(inToken, &kcauth.DefaultTokenFilePath),
+	)
 }

@@ -13,6 +13,13 @@ var (
 	// DefaultTokenFilePath is the full file path to the cached token.
 	DefaultTokenFilePath = "$HOME/.config/kcauth/token.json"
 
+	// DefaultAppName is used in order to have an individual key for the current application.
+	DefaultAppName = "kcauth"
+
+	// DefaultKeyringUsername is not necessarily a username, as in this case we
+	// use a file name as key and the offline token will be the value
+	DefaultKeyringUsername = "token.json"
+
 	// DefaultClientID is usually a public client that doe snot require any credentials, thus the secret is empty.
 	DefaultClientID = "public"
 
@@ -27,8 +34,8 @@ func init() {
 		fmt.Printf("Failed to find home directory: %v\n", err)
 		return
 	}
-	appName := fileNameWithoutExtension(os.Args[0])
-	cacheDir := path.Join(home, ".config", appName)
+	DefaultAppName = fileNameWithoutExtension(os.Args[0])
+	cacheDir := path.Join(home, ".config", DefaultAppName)
 
 	DefaultTokenFilePath = path.Join(cacheDir, "token.json")
 }

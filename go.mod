@@ -9,6 +9,7 @@ require (
 	github.com/jxsl13/simple-configo v1.20.2
 	github.com/lestrrat-go/jwx v1.2.6
 	github.com/manifoldco/promptui v0.8.0
+	github.com/zalando/go-keyring v0.1.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 

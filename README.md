@@ -38,7 +38,7 @@ import (
 // that can be left untouched as this library provides sane default values.
 func init() {
     kcauth.DefaultTokenFilePath = "$HOME/.config/kcauth/token.json" // this is dynamically initialized at startup
-    kcauth.DefaultClientID 		= "public"							// if you want to use a different client id
+    kcauth.DefaultClientID      = "public"							// if you want to use a different client id
     kcauth.DefaultClientSecret 	= ""								// if you want to provide a client secret
 
     // function that determines whether we are currently in a headless environment

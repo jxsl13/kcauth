@@ -11,7 +11,7 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
-// This function returns a Simple-Configo ParserFunc that may be executed in a simple-configo context.
+// This function returns a Simple-Configo ActionFunc that may be executed in a simple-configo context.
 // The returned function tries to read the json formated token file at the given location tokenFilePath
 // in case the token is expired but the refresh token still active, the whole token is refreshed before
 // the outToken is set to the new token. The refreshed token is never

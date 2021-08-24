@@ -28,6 +28,7 @@ import (
 	"github.com/jxsl13/kcauth"
 	"github.com/jxsl13/kcauth/auth"
 	configo "github.com/jxsl13/simple-configo"
+	"github.com/jxsl13/simple-configo/actions"
 	"github.com/jxsl13/simple-configo/parsers"
 	"github.com/jxsl13/simple-configo/unparsers"
 	"github.com/manifoldco/promptui"
@@ -63,6 +64,13 @@ type Config struct {
 	Token     kcauth.Token
 }
 
+// noOp returns a function that does nothing
+func noOp() (func() err) {
+	return func() err {
+		return nil
+	}
+}
+
 func (c *Config) Options() configo.Options {
 
 	return configo.Options{
@@ -79,6 +87,11 @@ func (c *Config) Options() configo.Options {
 			PreParseAction:   	auth.Login(&c.Token, &c.issuerURL), // first action executed on parsing
 			PostParseAction: 	auth.SaveToken(&c.Token), // second action executed on parsing
 			PreUnparseAction: 	auth.SaveToken(&c.Token), // third action executed before unpasing
+		},
+		{
+			Key:             	"Delete Token", // we can introduce a condition, e.g. a cli flag like --reset for cache deletion
+			PreParseAction:   	actions.If(true, auth.DeleteToken(), noOp()),
+			PreUnparseAction;   actions.If(true, auth.DeleteToken(), noOp()),
 		},
 	}
 }

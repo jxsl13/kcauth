@@ -64,14 +64,9 @@ type Config struct {
     Token     kcauth.Token
 }
 
-// noOp returns a function that does nothing
-func noOp() (func() err) {
-    return func() err {
-        return nil
-    }
-}
 
 func (c *Config) Options() configo.Options {
+    delCondition := true
 
     return configo.Options{
         {
@@ -90,8 +85,8 @@ func (c *Config) Options() configo.Options {
         },
         {
             Key:                "Delete Token On Condition", // we can introduce a condition, e.g. a cli flag like --reset for cache deletion
-            PreParseAction:     actions.If(true, auth.DeleteToken(), noOp()),
-            PreUnparseAction:   actions.If(true, auth.DeleteToken(), noOp()),
+            PreParseAction:     actions.OnlyIf(&delCondition, auth.DeleteToken()),
+            PreUnparseAction:   actions.OnlyIf(&delCondition, auth.DeleteToken()),
         },
     }
 }

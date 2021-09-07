@@ -26,6 +26,10 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 	var (
 		username string
 		password string
+		// isHeadlessEnv baked into returned function
+		// this allows to change the headless function in between two calls of the Login function
+		// the behavior of the returned ActionFunc will then depend on the set HeadlessFunction
+		isHeadlessEnv bool = HeadlessFunction()
 	)
 	return actions.Or(
 		// if it's not possible to fetch from keyring nor from file, expect user to login
@@ -34,7 +38,7 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 			cache.LoadTokenFromKeyring(outToken, &kcauth.DefaultAppName, &kcauth.DefaultKeyringUsername), // try to fetch from keying
 			cache.LoadToken(outToken, &kcauth.DefaultTokenFilePath),                                      // in case loading of the token fails, we want to trigger a login flow
 		),
-		actions.If(HeadlessFunction(), // in case we are headless, trigger cli login flow, else oidc web browser login flow
+		actions.If(&isHeadlessEnv, // in case we are headless, trigger cli login flow, else oidc web browser login flow
 			actions.And(
 				PromptText(&username),
 				PromptPassword(&password),
@@ -46,7 +50,7 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 					return nil
 				},
 			),
-			browser.Login(outToken, issuerUrl),
+			browser.Login(outToken, issuerUrl), // else case when we have a display
 		),
 	)
 }

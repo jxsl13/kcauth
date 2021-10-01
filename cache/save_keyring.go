@@ -2,7 +2,6 @@ package cache
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/jxsl13/kcauth"
 	configo "github.com/jxsl13/simple-configo"
@@ -12,19 +11,25 @@ import (
 // SaveToken is an action function that takes the inToken and saves it to
 // the provided file destination at tokenFilePath.
 func SaveTokenInKeyring(inToken *kcauth.Token, appName, username *string) configo.ActionFunc {
+	if inToken == nil {
+		panic("inToken is nil")
+	}
+
+	if appName == nil {
+		panic("appName is nil")
+	}
+
+	if username == nil {
+		panic("username is nil")
+	}
+
 	return func() error {
-		if inToken == nil {
-			return errors.New("inToken is nil")
-		}
+
 		err := saveTokenInKeyring(*appName, *username, inToken)
 		if err != nil {
 			return err
 		}
-
-		// sdo not add this to any result map, as
-		// this is a pseudo option that doe snot serialize anything into a
-		// configuration map
-		return configo.ErrSkipUnparse
+		return nil
 	}
 }
 

@@ -156,8 +156,8 @@ github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a h1:FaWFmfWdAUKbSCtOU
 github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a/go.mod h1:UJSiEoRfvx3hP73CvoARgeLjaIOjybY9vj8PUPPFGeU=
 github.com/jxsl13/oidc v0.6.3 h1:IaXjIODGcZFPCT82NvbtQx/OQ6mlJsNWfBrWnddL3T4=
 github.com/jxsl13/oidc v0.6.3/go.mod h1:2d3euMKrRxVQzxet9SuAS1kwexE69SCHLKXhK08QDH8=
-github.com/jxsl13/simple-configo v1.22.0 h1:W6uBUM7hCH5RRxefOs72tsVkTxlMWXTmBDS5B508dzg=
-github.com/jxsl13/simple-configo v1.22.0/go.mod h1:4RI3UDpACmXHEVciQcZpqJPS9JHVZUSAhLrlIoJHYgI=
+github.com/jxsl13/simple-configo v1.24.1 h1:SHeNhEIO8yy9VwQMpC46FddCEK/627Oi+S7uY8ARNYc=
+github.com/jxsl13/simple-configo v1.24.1/go.mod h1:/jnxcfb3YhYew83IhufZCzV2D1AkDGGHPb4fyECHEwo=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
@@ -344,7 +344,6 @@ golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44 h1:Bli41pIlzTzf3KEY06n+xnzK/
 golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
-golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72 h1:VqE9gduFZ4dbR7XoL77lHFp0/DyDUBKSXK7CMFkVcV0=
 golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

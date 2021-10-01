@@ -63,7 +63,7 @@ func Login(outToken *kcauth.Token, issuerUrl *string) configo.ActionFunc {
 func SaveToken(inToken *kcauth.Token) configo.ActionFunc {
 	// first successful action wins
 	return actions.Or(
-		cache.LoadTokenFromKeyring(inToken, &kcauth.DefaultAppName, &kcauth.DefaultKeyringUsername),
+		cache.SaveTokenInKeyring(inToken, &kcauth.DefaultAppName, &kcauth.DefaultKeyringUsername),
 		cache.SaveToken(inToken, &kcauth.DefaultTokenFilePath),
 	)
 }
